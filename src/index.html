@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AFO Toolsmith — Profile</title>
+<meta name="description" content="Your mobile build cockpit. Brainstorm in, MCP tool out.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{
+  background:#080908;
+  color:#f1f4ea;
+  font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+  line-height:1.5;
+  min-height:100dvh;
+}
+
+/* ── tokens ── */
+:root{
+  --acid:#efff2b;
+  --green:#4dff9c;
+  --cyan:#62e6ff;
+  --orange:#ffb86b;
+  --red:#ff6b6b;
+  --muted:#8e9488;
+  --dim:#5d6458;
+  --line:#2b3029;
+  --line-soft:#1e231d;
+  --panel:#111310;
+  --card:#141713;
+  --radius:18px;
+  --mono:ui-monospace,'SFMono-Regular',Menlo,Monaco,Consolas,monospace;
+}
+
+/* ── layout ── */
+.wrap{width:min(680px,calc(100% - 32px));margin:0 auto}
+
+/* ── topbar ── */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  border-bottom:1px solid rgba(239,255,43,.14);
+  background:rgba(8,9,8,.88);
+  backdrop-filter:blur(18px);
+  padding:0 16px;
+}
+.topbar-inner{
+  max-width:680px;margin:0 auto;
+  min-height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.brand{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-weight:900;
+  letter-spacing:.1em;text-transform:uppercase;font-size:13px;
+}
+.brand-dot{
+  width:10px;height:10px;border-radius:999px;
+  background:var(--acid);
+  box-shadow:0 0 20px rgba(239,255,43,.6);
+}
+.tier-pill{
+  font-family:var(--mono);font-size:11px;
+  border:1px solid rgba(239,255,43,.3);
+  color:var(--acid);border-radius:999px;
+  padding:4px 10px;
+}
+
+/* ── profile header ── */
+.profile-header{
+  padding:32px 0 24px;
+  display:flex;align-items:flex-start;gap:16px;
+}
+.avatar{
+  width:64px;height:64px;border-radius:20px;flex-shrink:0;
+  display:grid;place-items:center;font-size:32px;
+  background:linear-gradient(135deg,rgba(239,255,43,.2),rgba(77,255,156,.1));
+  border:1px solid rgba(239,255,43,.3);
+}
+.profile-meta{flex:1;min-width:0}
+.profile-name{font-size:22px;font-weight:900;letter-spacing:-.03em;line-height:1.1}
+.profile-handle{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:3px}
+.profile-headline{font-size:14px;color:#c9cec2;margin-top:6px}
+.profile-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);
+  color:var(--muted);border-radius:999px;padding:5px 10px;
+  font-family:var(--mono);font-size:11px;white-space:nowrap;
+}
+.pill.good{color:var(--green);border-color:rgba(77,255,156,.3)}
+.pill.acid{color:var(--acid);border-color:rgba(239,255,43,.3)}
+.pill.warn{color:var(--orange);border-color:rgba(255,184,107,.3)}
+
+/* ── metrics row ── */
+.metrics{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  margin-bottom:20px;
+}
+.metric{
+  background:var(--card);border:1px solid var(--line-soft);
+  border-radius:var(--radius);padding:14px 12px;
+}
+.metric strong{
+  display:block;font-family:var(--mono);
+  color:var(--acid);font-size:22px;font-weight:900;
+}
+.metric small{color:var(--muted);font-size:11px}
+
+/* ── tabs ── */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;overflow-x:auto;padding-bottom:2px}
+.tab{
+  border:1px solid var(--line);border-radius:999px;
+  padding:7px 14px;color:var(--muted);
+  font-family:var(--mono);font-size:12px;
+  background:transparent;cursor:pointer;
+  white-space:nowrap;transition:all 140ms ease;
+}
+.tab.active,.tab:hover{
+  color:#080908;background:var(--acid);
+  border-color:var(--acid);font-weight:900;
+}
+
+/* ── cards ── */
+.card{
+  background:var(--card);border:1px solid var(--line-soft);
+  border-radius:var(--radius);padding:18px;
+  margin-bottom:14px;
+}
+.card-title{
+  font-family:var(--mono);color:var(--acid);
+  letter-spacing:.12em;text-transform:uppercase;
+  font-size:11px;font-weight:900;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;
+}
+.card-title span:last-child{color:var(--dim)}
+
+/* ── tool rows ── */
+.tool-row{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:10px;padding:11px 0;
+  border-top:1px solid var(--line-soft);
+}
+.tool-row:first-of-type{border-top:0;padding-top:0}
+.tool-name{font-family:var(--mono);font-size:12px;color:#d9ddcf}
+.tool-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.status-badge{
+  font-family:var(--mono);font-size:10px;
+  padding:3px 8px;border-radius:999px;
+  border:1px solid rgba(77,255,156,.35);color:var(--green);
+  white-space:nowrap;
+}
+.status-badge.warn{border-color:rgba(255,184,107,.35);color:var(--orange)}
+.status-badge.dim{border-color:var(--line);color:var(--dim)}
+
+/* ── output card ── */
+.output-card{
+  background:linear-gradient(160deg,rgba(239,255,43,.07),rgba(8,9,8,.98));
+  border:1px solid rgba(239,255,43,.28);
+  border-radius:var(--radius);padding:22px;
+  margin-bottom:14px;
+}
+.output-card h3{
+  font-size:26px;font-weight:900;
+  letter-spacing:-.03em;line-height:1.1;margin-bottom:6px;
+}
+.output-card p{color:var(--muted);font-size:14px;margin-bottom:14px}
+.connector-url{
+  background:#050605;border:1px solid var(--line);
+  border-radius:12px;padding:12px 14px;
+  font-family:var(--mono);font-size:12px;
+  color:#c9cec2;overflow-x:auto;margin-bottom:14px;
+  cursor:pointer;transition:border-color 140ms ease;
+}
+.connector-url:hover{border-color:rgba(239,255,43,.35)}
+.btn{
+  display:block;width:100%;text-align:center;
+  border:0;border-radius:14px;
+  background:var(--acid);color:#080908;
+  font-weight:900;font-family:var(--mono);
+  padding:14px 16px;font-size:14px;
+  cursor:pointer;transition:opacity 140ms ease;
+  box-shadow:0 0 24px rgba(239,255,43,.18);
+}
+.btn:hover{opacity:.88}
+.btn.secondary{
+  background:transparent;color:var(--muted);
+  border:1px solid var(--line);margin-top:8px;
+}
+.btn.secondary:hover{color:#f1f4ea;border-color:rgba(241,244,234,.3)}
+
+/* ── agent stack ── */
+.agent-stack{display:flex;flex-wrap:wrap;gap:7px}
+
+/* ── section tabs content ── */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── project card ── */
+.project-card{
+  background:rgba(255,255,255,.025);border:1px solid var(--line-soft);
+  border-radius:14px;padding:14px;margin-bottom:10px;
+}
+.project-name{font-weight:700;font-size:15px;margin-bottom:4px}
+.project-meta{font-size:12px;color:var(--muted);font-family:var(--mono)}
+
+/* ── manifest preview ── */
+.manifest-pre{
+  background:#050605;border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px;
+  font-family:var(--mono);font-size:11px;
+  line-height:1.6;color:#c9cec2;
+  overflow-x:auto;white-space:pre;
+}
+
+/* ── footer ── */
+.footer{
+  padding:40px 0 60px;
+  font-family:var(--mono);font-size:11px;
+  color:var(--dim);text-align:center;
+}
+
+/* ── toast ── */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--acid);color:#080908;
+  font-family:var(--mono);font-weight:900;font-size:12px;
+  padding:10px 20px;border-radius:999px;
+  opacity:0;transition:opacity 200ms ease;
+  pointer-events:none;z-index:100;
+}
+.toast.show{opacity:1}
+
+@media(max-width:480px){
+  .profile-header{flex-direction:column;gap:12px}
+  .avatar{width:54px;height:54px;font-size:26px}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast">Copied!</div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <span>AFO Toolsmith</span>
+    </div>
+    <div class="tier-pill">Pro</div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="avatar" id="avatar">⚡</div>
+      <div class="profile-meta">
+        <div class="profile-name" id="displayName">Jared Edwards</div>
+        <div class="profile-handle" id="handle">@jared</div>
+        <div class="profile-headline" id="headline">Mobile-first AI software builder</div>
+        <div class="profile-pills">
+          <span class="pill good" id="statusPill">● live</span>
+          <span class="pill acid">mobile-first</span>
+          <span class="pill">iPhone</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics">
+      <div class="metric"><strong id="projectCount">0</strong><small>projects</small></div>
+      <div class="metric"><strong id="beltCount">0</strong><small>belts</small></div>
+      <div class="metric"><strong id="toolCount">0</strong><small>tools</small></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" data-panel="overview">Overview</button>
+      <button class="tab" role="tab" data-panel="projects">Projects</button>
+      <button class="tab" role="tab" data-panel="tools">Tools</button>
+      <button class="tab" role="tab" data-panel="connectors">Connectors</button>
+      <button class="tab" role="tab" data-panel="settings">Settings</button>
+    </div>
+
+    <!-- Overview -->
+    <div class="tab-panel active" id="panel-overview">
+
+      <!-- Output Card -->
+      <div class="output-card">
+        <div class="card-title"><span>Active Tool Output</span><span>ready</span></div>
+        <h3 id="activeToolName">AFO Repo Builder</h3>
+        <p id="activeToolDesc">Creates GitHub repos from html.spec files, adds README/AGENTS/ROADMAP docs, and posts status back to the message board.</p>
+        <div class="connector-url" id="connectorUrl" onclick="copyUrl()">https://afo-repo-builder.agentfeedoptimization.com/mcp</div>
+        <div class="agent-stack" style="margin-bottom:14px">
+          <span class="pill good">Claude-compatible</span>
+          <span class="pill good">mobile-ready</span>
+          <span class="pill warn">dev-only</span>
+        </div>
+        <button class="btn" onclick="copyUrl()">Copy Connector URL</button>
+        <button class="btn secondary">View Included Tools</button>
+      </div>
+
+      <!-- Builder Mode -->
+      <div class="card">
+        <div class="card-title"><span>Builder Mode</span><span>mobile-first</span></div>
+        <div class="agent-stack" id="agentStack"></div>
+      </div>
+
+      <!-- Profile Signals -->
+      <div class="card">
+        <div class="card-title"><span>Current Request</span><span>brainstorm tool</span></div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:14px" id="currentGoal">I uploaded an HTML spec and need Claude to build the repo from my phone.</p>
+        <button class="btn" onclick="window.location.href='/generate'">Generate My MCP Tool</button>
+      </div>
+
+    </div>
+
+    <!-- Projects -->
+    <div class="tab-panel" id="panel-projects">
+      <div id="projectList"></div>
+    </div>
+
+    <!-- Tools -->
+    <div class="tab-panel" id="panel-tools">
+      <div class="card">
+        <div class="card-title"><span>Generated Tools</span><span id="toolCountLabel">0 active</span></div>
+        <div id="toolList"></div>
+      </div>
+    </div>
+
+    <!-- Connectors -->
+    <div class="tab-panel" id="panel-connectors">
+      <div class="card">
+        <div class="card-title"><span>Connector Ledger</span><span>live</span></div>
+        <div id="connectorList"></div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="tab-panel" id="panel-settings">
+      <div class="card">
+        <div class="card-title"><span>Preferences</span><span>edit</span></div>
+        <div id="settingsView"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-title"><span>Agent-Readable Manifest</span><span>JSON</span></div>
+        <pre class="manifest-pre" id="manifestPre">Loading…</pre>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap">AFO Toolsmith — Brainstorm in, MCP tool out.</div>
+</footer>
+
+<script>
+// ── Tab switching ──
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    if (tab.dataset.panel === 'settings') loadManifest();
+  });
+});
+
+// ── Copy URL ──
+function copyUrl() {
+  const url = document.getElementById('connectorUrl').textContent.trim();
+  navigator.clipboard.writeText(url).then(() => showToast('Copied!'));
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ── Load profile from manifest API ──
+async function loadProfile() {
+  try {
+    const res = await fetch('/api/profile/jared/manifest');
+    const data = await res.json();
+    applyProfile(data);
+  } catch(e) {
+    applyProfile(FALLBACK_PROFILE);
+  }
+}
+
+function applyProfile(p) {
+  document.getElementById('displayName').textContent = p.display_name || 'Jared Edwards';
+  document.getElementById('handle').textContent = '@' + (p.handle || 'jared');
+  document.getElementById('headline').textContent = p.headline || 'Mobile-first AI software builder';
+  document.getElementById('avatar').textContent = p.avatar_emoji || '⚡';
+
+  const prefs = p.builder_mode || {};
+  const agents = prefs.preferred_agents || ['Claude','Perplexity','ChatGPT','Alice'];
+  const stack = document.getElementById('agentStack');
+  stack.innerHTML = agents.map(a => `<span class="pill good">${a}</span>`).join('');
+
+  const projects = p.active_projects || [];
+  document.getElementById('projectCount').textContent = projects.length;
+  document.getElementById('beltCount').textContent = p.belt_count || 0;
+  const tools = p.generated_tools || [];
+  document.getElementById('toolCount').textContent = tools.length;
+  document.getElementById('toolCountLabel').textContent = tools.length + ' active';
+
+  // Projects tab
+  const pl = document.getElementById('projectList');
+  if (projects.length === 0) {
+    pl.innerHTML = '<p style="color:var(--muted);font-size:14px;padding:20px 0">No projects yet — start by generating a tool.</p>';
+  } else {
+    pl.innerHTML = projects.map(proj => `
+      <div class="project-card">
+        <div class="project-name">${proj.name}</div>
+        <div class="project-meta">${proj.status} · ${proj.recommended_bundle || 'no bundle'}</div>
+      </div>
+    `).join('');
+  }
+
+  // Tools tab
+  const tl = document.getElementById('toolList');
+  if (tools.length === 0) {
+    tl.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:10px 0">No tools generated yet.</p>';
+  } else {
+    tl.innerHTML = tools.map(t => `
+      <div class="tool-row">
+        <div><div class="tool-name">${t.name}</div><div class="tool-sub">${(t.tools||[]).slice(0,2).join(' · ')}</div></div>
+        <span class="status-badge ${t.status==='ready'?'':'warn'}">${t.status||'draft'}</span>
+      </div>
+    `).join('');
+  }
+
+  // Connectors tab
+  const cl = document.getElementById('connectorList');
+  const connectors = p.generated_tools || [];
+  if (connectors.length === 0) {
+    cl.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:10px 0">No connectors yet.</p>';
+  } else {
+    cl.innerHTML = connectors.map(c => `
+      <div class="tool-row">
+        <div>
+          <div class="tool-name">${c.name}</div>
+          <div class="tool-sub" style="font-family:var(--mono);font-size:10px;word-break:break-all">${c.connector_url||''}</div>
+        </div>
+        <span class="status-badge">${c.status||'draft'}</span>
+      </div>
+    `).join('');
+  }
+
+  // Settings
+  const sv = document.getElementById('settingsView');
+  sv.innerHTML = `
+    <div class="tool-row"><div class="tool-name">Primary device</div><span class="pill">${prefs.primary_device||'iPhone'}</span></div>
+    <div class="tool-row"><div class="tool-name">Runtime</div><span class="pill">${prefs.preferred_runtime||'Cloudflare'}</span></div>
+    <div class="tool-row"><div class="tool-name">Source control</div><span class="pill">${prefs.preferred_source_control||'GitHub'}</span></div>
+    <div class="tool-row"><div class="tool-name">Spec format</div><span class="pill">${prefs.preferred_spec_format||'html.spec'}</span></div>
+    <div class="tool-row"><div class="tool-name">Hide infra by default</div><span class="pill good">${(p.workflow_preferences||{}).hide_infrastructure_by_default?'yes':'no'}</span></div>
+  `;
+}
+
+async function loadManifest() {
+  try {
+    const res = await fetch('/api/profile/jared/manifest');
+    const data = await res.json();
+    document.getElementById('manifestPre').textContent = JSON.stringify(data, null, 2);
+  } catch(e) {
+    document.getElementById('manifestPre').textContent = JSON.stringify(FALLBACK_PROFILE, null, 2);
+  }
+}
+
+// ── Fallback profile (shown if API not yet wired) ──
+const FALLBACK_PROFILE = {
+  id: 'usr_01_jared_mobile_builder',
+  schema_version: '1.0.0',
+  display_name: 'Jared Edwards',
+  handle: 'jared',
+  avatar_emoji: '⚡',
+  headline: 'Mobile-first AI software builder',
+  public_profile: true,
+  belt_count: 0,
+  builder_mode: {
+    primary_device: 'iPhone',
+    mobile_first: true,
+    preferred_agents: ['Claude','Perplexity','ChatGPT','Alice'],
+    preferred_runtime: 'Cloudflare',
+    preferred_source_control: 'GitHub',
+    preferred_spec_format: 'html.spec',
+    default_output: 'mcp_tool_name_and_connector_url'
+  },
+  workflow_preferences: {
+    hide_infrastructure_by_default: true,
+    show_power_tools: true,
+    default_connector_lifetime: 'temporary',
+    default_security_posture: 'dev-contained',
+    default_tool_scope: 'project-belt',
+    preferred_handoff_style: 'copyable_alice_prompt'
+  },
+  active_projects: [],
+  generated_tools: []
+};
+
+loadProfile();
+</script>
+</body>
+</html>

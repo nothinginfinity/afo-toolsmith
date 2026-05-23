@@ -1,46 +1,60 @@
-# CLAUDE-TODO — AFO Toolsmith
+# Claude Task List — AFO Toolsmith
 
-> Phase 1: Static UI + Schema
+Alice scaffolds. Claude deploys and wires.
 
-## Phase 1 — Ship first (static UI + D1 schema)
+---
 
-- [ ] Build `src/index.html` — responsive mobile-first profile page
-  - Builder card (name, handle, agent prefs, mobile-first badge)
-  - Current goal input
-  - Active projects list
-  - Generated connectors ledger
-  - Tool belts panel
-  - Output card: tool name + connector URL (primary CTA)
-  - Three tabs: Onboarding / Cockpit / Workshop
-- [ ] Add sample profile data matching the manifest schema
-- [ ] Build `schema/profile.sql` — all 6 D1 tables:
-  - users
-  - user_preferences
-  - user_agents
-  - user_projects
-  - generated_connectors
-  - profile_artifacts
-- [ ] Build `schema/profile.manifest.schema.json`
-- [ ] Add stub Worker at `workers/afo-toolsmith/worker.js`
-  - GET /health
-  - GET /api/profile/:handle/manifest → returns sample manifest JSON
-  - POST /api/me/recommend-tool → stub returning hardcoded bundle
-  - POST /mcp → MCP protocol handler (tools/list, tools/call)
-- [ ] Add `wrangler.toml` for afo-toolsmith Worker
+## Phase 1 — Static Profile UI + Manifest API
 
-## Phase 2 — Foundation (D1 CRUD API)
+- [ ] Deploy `workers/afo-toolsmith/worker.js` to Cloudflare Workers
+- [ ] Confirm `/health` returns `{ status: 'ok', phase: 1 }`
+- [ ] Confirm `GET /api/profile/jared/manifest` returns Jared's seed manifest JSON
+- [ ] Confirm `POST /api/me/recommend-tool` with `{ brainstorm: 'build a github repo' }` returns AFO Repo Builder
+- [ ] Deploy `src/index.html` via Cloudflare Pages (connect `nothinginfinity/afo-toolsmith` repo, set build output to `src/`)
+- [ ] Confirm profile UI loads at the Pages URL and manifest tab shows Jared's JSON
+- [ ] Post live URLs to `shared/bulletin.md` in agent-bridge
+- [ ] Write reply to `alice/inbox.md` in agent-bridge with live URLs
+- [ ] Mark Phase 1 done below
 
-- [ ] Wire D1 binding into Worker
-- [ ] CRUD routes: GET/PATCH /api/me, POST /api/me/projects, POST /api/me/projects/:id/artifacts
-- [ ] Connector ledger: GET /api/me/connectors, POST /api/me/connectors/:id/health-check
-- [ ] Profile manifest endpoint: GET /api/profile/:handle/manifest (live from D1)
+**Phase 1 status:** `pending`
 
-## Phase 3 — Intelligence (recommendation + generation)
+---
 
-- [ ] Wire Vectorize for tool catalogue semantic search
-- [ ] Real recommend-tool: brainstorm → vector search → ranked tool list
-- [ ] Connector generation: belt → Tier 2 Worker source with real handlers
-- [ ] Profile embedding refresh: POST /api/profile/:handle/refresh-embedding
+## Phase 2 — D1 Persistence
 
-## Spec
-https://raw.githubusercontent.com/nothinginfinity/afo-toolsmith/main/afo-toolsmith-user-profile.spec.html
+- [ ] Create D1 database `afo-toolsmith-db` in Cloudflare dashboard
+- [ ] Run `schema/profile.sql` migrations against `afo-toolsmith-db`
+- [ ] Add `DB` D1 binding to `workers/afo-toolsmith/wrangler.toml`
+- [ ] Seed Jared's profile row in `users` and `user_preferences` tables
+- [ ] Wire `GET /api/profile/:handle/manifest` to query D1 (see `src/api/profile.ts` comments)
+- [ ] Wire `GET /api/me` with auth (Bearer token or Cloudflare Access)
+- [ ] Implement `PATCH /api/me` for profile updates
+- [ ] Implement `GET /api/me/projects` + `POST /api/me/projects`
+- [ ] Implement `GET /api/me/connectors` + `POST /api/me/connectors/:id/health-check`
+- [ ] Update `src/index.html` to use real API endpoints
+- [ ] Post status to agent-bridge
+
+**Phase 2 status:** `not started`
+
+---
+
+## Phase 3 — Recommendation Engine
+
+- [ ] Wire `POST /api/me/recommend-tool` to `tools.agentfeedoptimization.com` tool catalogue
+- [ ] Add Vectorize binding for semantic tool search
+- [ ] Replace keyword stub in `src/lib/recommendation-stub.ts` with vector + catalogue lookup
+- [ ] Test with real brainstorm inputs from Jared's profile context
+- [ ] Post status to agent-bridge
+
+**Phase 3 status:** `not started`
+
+---
+
+## Notes for Claude
+
+- Alice scaffolds all source files. Claude deploys and wires bindings.
+- Worker source: `workers/afo-toolsmith/worker.js`
+- Profile UI: `src/index.html` (deploy via Cloudflare Pages)
+- TypeScript source in `src/` is for reference — the worker.js is vanilla JS for direct deploy
+- The `JARED_SEED_MANIFEST` constant in `worker.js` is Jared's real profile — update it when D1 is live
+- All post-build status goes to `shared/bulletin.md` + `alice/inbox.md` in `nothinginfinity/agent-bridge`

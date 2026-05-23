@@ -1,129 +1,102 @@
-/**
- * AFO Toolsmith — Worker
- * Serves profile UI, profile manifest API, recommendation stub, and MCP endpoint
- * Mobile MCP Pattern — POST /mcp only, no SSE
- */
+// afo-toolsmith worker.js — Phase 1
+// Routes: /health, /mcp, /api/profile/:handle/manifest, /api/me, /api/me/recommend-tool
+// Phase 2 will add D1 CRUD. Phase 3 adds vector recommendation.
 
-function ok(id, r) {
-  return Response.json({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: JSON.stringify(r, null, 2) }] } });
-}
-function err(id, c, m) {
-  return Response.json({ jsonrpc: '2.0', id, error: { code: c, message: m } });
-}
+import { JARED_SEED_MANIFEST } from '../../src/lib/profile-manifest';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-const TOOLS = [
-  {
-    name: 'get_profile_manifest',
-    description: 'Returns the agent-readable profile manifest for a given handle. Use this to load builder context before generating tool recommendations.'
-  },
-  {
-    name: 'recommend_tools',
-    description: 'Given a brainstorm or goal text, returns the best matching MCP tools and bundle from the AFO catalogue.'
-  },
-  {
-    name: 'generate_connector',
-    description: 'Generates a deploy-ready Cloudflare Worker source for the given tool belt. Returns worker source + connector name + deployment instructions.'
-  }
-];
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data, null, 2), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...CORS },
+  });
+}
 
-const SAMPLE_MANIFEST = {
-  profile_id: 'usr_sample',
-  schema_version: '1.0.0',
-  display: {
-    name: 'Sample Builder',
-    handle: 'builder',
-    avatar_emoji: '🛠️',
-    headline: 'Mobile-first AI software builder',
-    public_profile: true
-  },
-  builder_mode: {
-    primary_device: 'iPhone',
-    mobile_first: true,
-    preferred_agents: ['Claude', 'Perplexity'],
-    preferred_runtime: 'Cloudflare',
-    preferred_source_control: 'GitHub',
-    preferred_spec_format: 'html.spec',
-    default_output: 'mcp_tool_name_and_connector_url'
-  },
-  active_projects: [],
-  generated_tools: [],
-  retrieval_text: 'Mobile-first builder using Claude, GitHub, Cloudflare Workers, D1, and MCP connectors.'
-};
-
-async function handleMCP(req, env) {
-  const { id, method, params } = await req.json();
-  if (method === 'initialize') return ok(id, { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'afo-toolsmith', version: '1.0.0' } });
-  if (method === 'notifications/initialized') return new Response(null, { status: 204 });
-  if (method === 'ping') return ok(id, {});
-  if (method === 'tools/list') return ok(id, { tools: TOOLS });
-  if (method === 'tools/call') {
-    const { name, arguments: args = {} } = params || {};
-    try {
-      switch (name) {
-        case 'get_profile_manifest':
-          return ok(id, SAMPLE_MANIFEST);
-        case 'recommend_tools':
-          return ok(id, {
-            recommended_bundle: 'full_session_belt',
-            tools: ['github.read_file', 'github.commit_file', 'cloudflare.deploy_worker', 'cloudflare.query_d1', 'mcp.post_board_status'],
-            rationale: 'Based on your goal, this belt covers GitHub read/write, Worker deployment, D1 queries, and agent coordination.'
-          });
-        case 'generate_connector':
-          return ok(id, {
-            status: 'stub',
-            message: 'Tier 2 generator coming in Phase 3. Use workshop.agentfeedoptimization.com to generate connectors manually.'
-          });
-        default:
-          return err(id, -32601, 'Unknown tool: ' + name);
-      }
-    } catch (e) {
-      return err(id, -32603, 'Tool error: ' + e.message);
-    }
+function recommendTool(brainstorm) {
+  const t = (brainstorm || '').toLowerCase();
+  if (['repo','github','spec','html','scaffold'].some(k => t.includes(k))) {
+    return { tool_name: 'AFO Repo Builder', connector_url: 'https://afo-repo-builder.agentfeedoptimization.com/mcp', risk: 'dev-only', source: 'stub' };
   }
-  return err(id, -32601, 'Method not found: ' + method);
+  if (['cloudflare','worker','deploy','d1','kv','r2'].some(k => t.includes(k))) {
+    return { tool_name: 'Cloudflare Tools MCP', connector_url: 'https://cloudflare-tools-mcp.agentfeedoptimization.com/mcp', risk: 'dev-only', source: 'stub' };
+  }
+  if (['link','context','slug','share'].some(k => t.includes(k))) {
+    return { tool_name: 'Context Links MCP', connector_url: 'https://context-links-mcp.agentfeedoptimization.com/mcp', risk: 'safe', source: 'stub' };
+  }
+  return { tool_name: 'AFO Repo Builder', connector_url: 'https://afo-repo-builder.agentfeedoptimization.com/mcp', risk: 'dev-only', source: 'stub' };
 }
 
 export default {
-  async fetch(req, env) {
-    const url = new URL(req.url);
-    const headers = new Headers(CORS);
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const path = url.pathname;
 
-    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers });
-    if (url.pathname === '/health') return Response.json({ status: 'ok', service: 'afo-toolsmith' }, { headers });
-
-    // MCP endpoint
-    if (url.pathname === '/mcp' && req.method === 'POST') {
-      const r = await handleMCP(req, env);
-      Object.entries(CORS).forEach(([k, v]) => r.headers.set(k, v));
-      return r;
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: CORS });
     }
 
-    // Profile manifest API
-    if (url.pathname.startsWith('/api/profile/') && req.method === 'GET') {
-      const handle = url.pathname.split('/')[3];
-      if (url.pathname.endsWith('/manifest')) {
-        return Response.json({ ...SAMPLE_MANIFEST, display: { ...SAMPLE_MANIFEST.display, handle } }, { headers });
+    // ── Health ──
+    if (path === '/health') {
+      return json({ status: 'ok', version: '1.0.0', worker: 'afo-toolsmith', phase: 1 });
+    }
+
+    // ── Serve profile UI ──
+    if (path === '/' || path === '/profile' || path === '/profile/jared') {
+      // In production, serve src/index.html via Workers Sites or Pages.
+      // This stub redirects to the GitHub Pages preview until Pages is wired.
+      return new Response('Profile UI — deploy src/index.html via Cloudflare Pages or Workers Sites.', {
+        headers: { 'Content-Type': 'text/plain', ...CORS },
+      });
+    }
+
+    // ── GET /api/profile/:handle/manifest ──
+    const manifestMatch = path.match(/^\/api\/profile\/([\w-]+)\/manifest$/);
+    if (manifestMatch && request.method === 'GET') {
+      const handle = manifestMatch[1];
+      if (handle === 'jared') {
+        return json(JARED_SEED_MANIFEST);
+      }
+      return json({ error: 'Profile not found' }, 404);
+    }
+
+    // ── GET /api/me ──
+    if (path === '/api/me' && request.method === 'GET') {
+      return json(JARED_SEED_MANIFEST);
+    }
+
+    // ── POST /api/me/recommend-tool ──
+    if (path === '/api/me/recommend-tool' && request.method === 'POST') {
+      let body = {};
+      try { body = await request.json(); } catch {}
+      return json(recommendTool(body.brainstorm));
+    }
+
+    // ── MCP endpoint (future tool server) ──
+    if (path === '/mcp') {
+      if (request.method === 'GET') {
+        return json({ name: 'afo-toolsmith', version: '1.0.0', description: 'AFO Toolsmith profile + recommendation API', tools: [] });
+      }
+      if (request.method === 'POST') {
+        let body = {};
+        try { body = await request.json(); } catch {
+          return json({ error: 'Invalid JSON' }, 400);
+        }
+        const { method, id } = body;
+        if (method === 'initialize') {
+          return json({ jsonrpc: '2.0', id, result: { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'afo-toolsmith', version: '1.0.0' } } });
+        }
+        if (method === 'tools/list') {
+          return json({ jsonrpc: '2.0', id, result: { tools: [] } });
+        }
+        return json({ jsonrpc: '2.0', id, error: { code: -32601, message: `Method not found: ${method}` } }, 404);
       }
     }
 
-    // Recommend tool stub
-    if (url.pathname === '/api/me/recommend-tool' && req.method === 'POST') {
-      const body = await req.json().catch(() => ({}));
-      return Response.json({
-        recommended_bundle: 'full_session_belt',
-        goal: body.goal || '',
-        tools: ['github.read_file', 'github.commit_file', 'cloudflare.deploy_worker', 'cloudflare.query_d1', 'mcp.post_board_status'],
-        connector_name: 'My Project Belt',
-        next_step: 'Go to workshop.agentfeedoptimization.com to generate and deploy your connector.'
-      }, { headers });
-    }
-
-    return new Response('not found', { status: 404, headers });
-  }
+    return json({ error: 'Not found', path }, 404);
+  },
 };
