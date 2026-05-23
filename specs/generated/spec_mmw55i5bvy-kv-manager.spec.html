@@ -1,0 +1,87 @@
+<DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>kv_manager — MCP Tool Spec</title>
+<head>
+<body>
+<h1>kv_manager</h1>
+<p class="tagline">A tool for managing Cloudflare KV keys.</p>
+<section id="overview">
+<h2>Overview</h2>
+<p>This tool allows you to list and delete Cloudflare KV keys. It provides a simple interface for managing your KV store.</p>
+</section>
+<section id="tools">
+<h2>Tools</h2>
+<article id="tool-list_kv_keys">
+<h3>list_kv_keys</h3>
+<p>List all KV keys in your account.</p>
+<h4>Input Schema</h4>
+<pre><code class="language-json">
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "List KV Keys Input",
+  "type": "object",
+  "properties": {
+    "account_id": {"type": "string"}
+  },
+  "required": ["account_id"]
+}
+</code></pre>
+<h4>Output</h4>
+<p>A list of KV keys in your account.</p>
+<h4>Example</h4>
+<pre><code class="language-json">
+[
+  {"key": "key1", "value": "value1"},
+  {"key": "key2", "value": "value2"}
+]
+</code></pre>
+</article>
+<article id="tool-delete_kv_key">
+<h3>delete_kv_key</h3>
+<p>Delete a KV key from your account.</p>
+<h4>Input Schema</h4>
+<pre><code class="language-json">
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Delete KV Key Input",
+  "type": "object",
+  "properties": {
+    "account_id": {"type": "string"},
+    "key": {"type": "string"}
+  },
+  "required": ["account_id", "key"]
+}
+</code></pre>
+<h4>Output</h4>
+<p>A success message if the key was deleted.</p>
+<h4>Example</h4>
+<pre><code class="language-json">
+{
+  "message": "Key deleted successfully"
+}
+</code></pre>
+</article>
+</section>
+<section id="worker">
+<h2>Cloudflare Worker</h2>
+<p>Runtime: Cloudflare Workers (vanilla JS)</p>
+<p>Bindings: KV, Workers KV</p>
+<p>Route: /mcp</p>
+</section>
+<section id="deployment">
+<h2>Deployment</h2>
+<ol>
+<li>Install wrangler CLI: `npm install -g wrangler`</li>
+<li>Log in to Cloudflare: `wrangler login`</li>
+<li>Deploy the worker: `wrangler publish`</li>
+</ol>
+</section>
+<section id="connector">
+<h2>Connector URL</h2>
+<p>Format: https://kv-manager.agentfeedoptimization.com/mcp</p>
+<p>Suggested name: kv-manager</p>
+</section>
+</body>
+</html>
