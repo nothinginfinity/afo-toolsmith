@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AFO Toolsmith — User Profile HTML Spec</title>
+  <meta name="description" content="HTML spec for AFO Toolsmith user profiles: mobile-first developer identity, tool belts, connector preferences, project context, and agent permissions." />
+  <style>
+    :root {
+      --bg: #080908;
+      --panel: #111310;
+      --panel-2: #171a16;
+      --card: #141713;
+      --line: #2b3029;
+      --line-soft: #1e231d;
+      --text: #f1f4ea;
+      --muted: #8e9488;
+      --dim: #5d6458;
+      --acid: #efff2b;
+      --green: #4dff9c;
+      --cyan: #62e6ff;
+      --orange: #ffb86b;
+      --red: #ff6b6b;
+      --purple: #b790ff;
+      --shadow: 0 30px 80px rgba(0,0,0,.55);
+      --radius: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 20% -10%, rgba(239,255,43,.12), transparent 28rem),
+        radial-gradient(circle at 90% 10%, rgba(77,255,156,.08), transparent 30rem),
+        linear-gradient(180deg, #050605 0%, var(--bg) 44%, #050605 100%);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.5;
+    }
+    a { color: var(--acid); text-decoration: none; }
+    .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid rgba(239,255,43,.16);
+      background: rgba(8,9,8,.82);
+      backdrop-filter: blur(18px);
+    }
+    .topbar .inner {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-family: var(--mono); letter-spacing: .12em; text-transform: uppercase; font-weight: 800; }
+    .brand .dot { width: 12px; height: 12px; border-radius: 999px; background: var(--acid); box-shadow: 0 0 28px rgba(239,255,43,.55); }
+    .nav { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+    .nav a { color: var(--muted); font-size: 13px; font-family: var(--mono); }
+    .nav a:hover { color: var(--acid); }
+    .hero { padding: 64px 0 34px; }
+    .eyebrow { color: var(--green); font-family: var(--mono); letter-spacing: .16em; text-transform: uppercase; font-size: 12px; font-weight: 800; }
+    h1 { font-size: clamp(38px, 7vw, 82px); line-height: .95; letter-spacing: -.06em; margin: 14px 0 16px; max-width: 920px; }
+    .lead { color: #c9cec2; font-size: clamp(18px, 2vw, 24px); max-width: 790px; margin: 0; }
+    .hero-grid { display: grid; grid-template-columns: 1.02fr .98fr; gap: 24px; align-items: start; margin-top: 36px; }
+    .panel { background: linear-gradient(180deg, rgba(23,26,22,.94), rgba(14,16,13,.96)); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .panel.pad { padding: 24px; }
+    .phone {
+      width: min(390px, 100%);
+      margin: 0 auto;
+      border: 1px solid #30362e;
+      border-radius: 36px;
+      padding: 12px;
+      background: #050605;
+      box-shadow: 0 24px 90px rgba(0,0,0,.7), inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    .screen { border-radius: 26px; overflow: hidden; background: #0a0b0a; border: 1px solid #20241f; min-height: 690px; }
+    .mobile-head { padding: 18px; border-bottom: 1px solid var(--line-soft); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .avatar { width: 54px; height: 54px; border-radius: 18px; display:grid; place-items:center; background: linear-gradient(135deg, rgba(239,255,43,.22), rgba(77,255,156,.12)); border: 1px solid rgba(239,255,43,.35); font-size: 28px; }
+    .name { font-weight: 850; letter-spacing: -.02em; font-size: 20px; }
+    .handle { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+    .pill { display:inline-flex; align-items:center; gap:7px; border: 1px solid var(--line); background: #0d0f0d; color: var(--muted); border-radius: 999px; padding: 7px 10px; font-family: var(--mono); font-size: 11px; white-space: nowrap; }
+    .pill.good { color: var(--green); border-color: rgba(77,255,156,.35); }
+    .pill.warn { color: var(--orange); border-color: rgba(255,184,107,.35); }
+    .mobile-body { padding: 18px; display: grid; gap: 14px; }
+    .profile-card { border: 1px solid var(--line-soft); border-radius: 18px; background: rgba(255,255,255,.025); padding: 14px; }
+    .card-title { font-family: var(--mono); color: var(--acid); letter-spacing: .12em; text-transform: uppercase; font-size: 11px; margin-bottom: 10px; font-weight: 850; display:flex; justify-content:space-between; gap:10px; }
+    .card-title span:last-child { color: var(--dim); }
+    .metric-grid { display:grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .metric { background: #0f110f; border: 1px solid var(--line-soft); border-radius: 14px; padding: 10px; }
+    .metric strong { display:block; font-family: var(--mono); color: var(--acid); font-size: 18px; }
+    .metric small { color: var(--muted); font-size: 11px; }
+    .stack { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tool-row { display:flex; justify-content:space-between; gap:10px; align-items:center; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+    .tool-row:first-of-type { border-top: 0; padding-top:0; }
+    .tool-name { font-family: var(--mono); font-size: 12px; color:#d9ddcf; }
+    .status { font-family: var(--mono); font-size: 10px; padding: 3px 7px; border-radius: 999px; border:1px solid rgba(77,255,156,.35); color: var(--green); }
+    .cta { display:block; width:100%; text-align:center; border:0; border-radius: 16px; background: var(--acid); color:#080908; font-weight:900; font-family:var(--mono); padding:15px 16px; margin-top:4px; box-shadow: 0 0 28px rgba(239,255,43,.16); }
+    .secondary { display:block; width:100%; text-align:center; border:1px solid var(--line); border-radius: 16px; background: transparent; color:var(--muted); font-weight:800; font-family:var(--mono); padding:13px 16px; }
+    .section { padding: 44px 0; }
+    h2 { font-size: clamp(28px, 4vw, 48px); letter-spacing:-.04em; line-height:1; margin:0 0 14px; }
+    .section p.sub { color:var(--muted); margin:0 0 24px; max-width:760px; font-size:17px; }
+    .grid-3 { display:grid; grid-template-columns: repeat(3,1fr); gap:16px; }
+    .grid-2 { display:grid; grid-template-columns: repeat(2,1fr); gap:16px; }
+    .spec-card { background: linear-gradient(180deg, rgba(20,23,19,.96), rgba(11,13,11,.96)); border: 1px solid var(--line); border-radius: 20px; padding: 18px; }
+    .spec-card h3 { margin:0 0 8px; font-size:19px; letter-spacing:-.02em; }
+    .spec-card p { margin:0; color:var(--muted); font-size:14px; }
+    .tag { display:inline-flex; border:1px solid var(--line); color:var(--muted); border-radius:999px; padding:5px 8px; font-family:var(--mono); font-size:10px; margin: 8px 6px 0 0; }
+    .tag.acid { color:var(--acid); border-color: rgba(239,255,43,.34); }
+    .tag.green { color:var(--green); border-color: rgba(77,255,156,.34); }
+    .tag.orange { color:var(--orange); border-color: rgba(255,184,107,.34); }
+    pre { margin: 0; overflow:auto; border-radius: 18px; background: #050605; border: 1px solid var(--line); padding: 18px; color:#c9cec2; font-family: var(--mono); font-size: 12px; line-height: 1.55; }
+    code .key, pre .key { color: var(--acid); }
+    .flow { display:grid; gap:12px; }
+    .flow-step { display:grid; grid-template-columns: 44px 1fr; gap:14px; align-items:start; padding:16px; border:1px solid var(--line); border-radius:18px; background:#0e100e; }
+    .num { width:34px; height:34px; border-radius:12px; display:grid; place-items:center; background:rgba(239,255,43,.12); color:var(--acid); border:1px solid rgba(239,255,43,.3); font-family:var(--mono); font-weight:900; }
+    .flow-step strong { display:block; margin-bottom:3px; }
+    .flow-step span { color:var(--muted); font-size:14px; }
+    .wireframe { display:grid; grid-template-columns: .9fr 1.1fr; gap:18px; align-items:start; }
+    .tabs { display:flex; gap:8px; flex-wrap:wrap; margin: 14px 0; }
+    .tab { border:1px solid var(--line); border-radius:999px; padding:8px 10px; color:var(--muted); font-family:var(--mono); font-size:11px; }
+    .tab.active { color:#080908; background:var(--acid); border-color:var(--acid); font-weight:900; }
+    table { width:100%; border-collapse: collapse; overflow:hidden; border-radius:18px; border:1px solid var(--line); background:#0d0f0d; }
+    th, td { text-align:left; padding:13px; border-bottom:1px solid var(--line-soft); vertical-align:top; font-size:13px; }
+    th { color:var(--acid); font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em; background:#121511; }
+    td { color:#c8cdc2; }
+    tr:last-child td { border-bottom:0; }
+    .handoff { border:1px solid rgba(239,255,43,.32); background:linear-gradient(180deg, rgba(239,255,43,.08), rgba(20,23,19,.96)); }
+    .footer { padding:40px 0 70px; color:var(--dim); font-family:var(--mono); font-size:12px; }
+    @media (max-width: 880px) {
+      .hero-grid, .grid-3, .grid-2, .wireframe { grid-template-columns:1fr; }
+      .nav { display:none; }
+      .hero { padding-top: 40px; }
+      .phone { width:100%; }
+      .metric-grid { grid-template-columns: repeat(3,1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap inner">
+      <div class="brand"><span class="dot"></span><span>AFO Toolsmith Profile</span></div>
+      <nav class="nav">
+        <a href="#concept">Concept</a>
+        <a href="#ui">UI</a>
+        <a href="#schema">Schema</a>
+        <a href="#api">API</a>
+        <a href="#handoff">Alice Handoff</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero wrap">
+      <div class="eyebrow">HTML Spec · Mobile Development Platform · User Identity Layer</div>
+      <h1>The profile is the user’s mobile build cockpit.</h1>
+      <p class="lead">AFO Toolsmith profiles store the builder’s goals, projects, preferred agents, connector history, tool belts, safety posture, and mobile constraints so the system can generate the right MCP tool from a brainstorm, files, and links.</p>
+
+      <div class="hero-grid">
+        <div class="panel pad">
+          <h2 style="margin-bottom:12px;">Product rule</h2>
+          <p class="sub">The user should not see Cloudflare unless they ask. The profile translates their intent into a clean output: <strong>tool name + connector URL + usage instructions</strong>.</p>
+          <div class="flow">
+            <div class="flow-step"><div class="num">1</div><div><strong>Capture builder context</strong><span>What they build, how they work, which agents they use, and what they already connected.</span></div></div>
+            <div class="flow-step"><div class="num">2</div><div><strong>Remember project patterns</strong><span>Common stacks, preferred repo structure, recurring tool belts, and previous successful connectors.</span></div></div>
+            <div class="flow-step"><div class="num">3</div><div><strong>Generate one simple answer</strong><span>Name, MCP URL, status, and “Open in Claude” instructions. Hide the infrastructure behind the workshop.</span></div></div>
+          </div>
+        </div>
+
+        <div class="phone" id="ui">
+          <div class="screen">
+            <div class="mobile-head">
+              <div style="display:flex; gap:12px; align-items:center;">
+                <div class="avatar">🛠️</div>
+                <div>
+                  <div class="name">Jared Edwards</div>
+                  <div class="handle">@jared · mobile builder</div>
+                </div>
+              </div>
+              <span class="pill good">live</span>
+            </div>
+            <div class="mobile-body">
+              <div class="profile-card">
+                <div class="card-title"><span>Builder Mode</span><span>mobile-first</span></div>
+                <div class="stack">
+                  <span class="pill good">Claude</span>
+                  <span class="pill good">Perplexity</span>
+                  <span class="pill">ChatGPT</span>
+                  <span class="pill warn">dev tools</span>
+                </div>
+              </div>
+
+              <div class="profile-card">
+                <div class="card-title"><span>Profile Signal</span><span>today</span></div>
+                <div class="metric-grid">
+                  <div class="metric"><strong>7</strong><small>projects</small></div>
+                  <div class="metric"><strong>18</strong><small>belts</small></div>
+                  <div class="metric"><strong>42</strong><small>tools</small></div>
+                </div>
+              </div>
+
+              <div class="profile-card">
+                <div class="card-title"><span>Active Tool Output</span><span>ready</span></div>
+                <div class="tool-row"><div><div class="tool-name">afo_repo_builder</div><div class="handle">repo + specs + docs</div></div><span class="status">MCP</span></div>
+                <div class="tool-row"><div><div class="tool-name">cloudflare_app_builder</div><div class="handle">workers + d1 + health</div></div><span class="status">MCP</span></div>
+                <div class="tool-row"><div><div class="tool-name">message_board_indexer</div><div class="handle">vector search + artifacts</div></div><span class="status">MCP</span></div>
+              </div>
+
+              <div class="profile-card">
+                <div class="card-title"><span>Current Request</span><span>brainstorm → tool</span></div>
+                <p style="margin:0;color:var(--muted);font-size:13px;">“I uploaded an HTML spec and need Claude to build the repo from my phone.”</p>
+                <button class="cta">Generate My MCP Tool</button>
+                <button class="secondary" style="margin-top:10px;">View Tool History</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="concept">
+      <h2>What a profile is</h2>
+      <p class="sub">The profile is not just an account page. It is a context router for mobile software creation. It helps AFO Toolsmith decide which tool, bundle, connector, and instructions to generate for each user.</p>
+      <div class="grid-3">
+        <article class="spec-card">
+          <h3>Builder identity</h3>
+          <p>Stores preferred agents, coding style, repo conventions, mobile workflow constraints, and default deployment targets.</p>
+          <span class="tag acid">identity</span><span class="tag">preferences</span>
+        </article>
+        <article class="spec-card">
+          <h3>Project memory</h3>
+          <p>Tracks active projects, linked specs, files, URLs, repos, generated connectors, and previous successful tool belts.</p>
+          <span class="tag green">context</span><span class="tag">vector-ready</span>
+        </article>
+        <article class="spec-card">
+          <h3>Tool permissions</h3>
+          <p>Defines dev-only safety posture, connector expiration, allowed tool classes, and whether the user wants speed or containment.</p>
+          <span class="tag orange">safety</span><span class="tag">blast-radius</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="section wrap">
+      <h2>Profile page modules</h2>
+      <p class="sub">The profile should be simple on mobile but deeply useful to the routing engine. Users see a cockpit; agents see structured context.</p>
+      <div class="grid-2">
+        <div class="spec-card">
+          <h3>Visible user modules</h3>
+          <div class="tabs"><span class="tab active">Overview</span><span class="tab">Projects</span><span class="tab">Tools</span><span class="tab">Connectors</span><span class="tab">Settings</span></div>
+          <table>
+            <tr><th>Module</th><th>Purpose</th></tr>
+            <tr><td>Builder Card</td><td>Name, handle, agent preferences, mobile-first status, current workspace.</td></tr>
+            <tr><td>Current Goal</td><td>One sentence prompt that guides tool recommendation.</td></tr>
+            <tr><td>Active Projects</td><td>Project cards with files, links, repo, status, and recommended tools.</td></tr>
+            <tr><td>Generated Tools</td><td>List of MCP tool names, URLs, status, and expiration.</td></tr>
+            <tr><td>Tool Belts</td><td>Reusable bundles selected from prior work or recommended by the system.</td></tr>
+          </table>
+        </div>
+        <div class="spec-card">
+          <h3>Agent-readable modules</h3>
+          <table>
+            <tr><th>Module</th><th>Purpose</th></tr>
+            <tr><td>Context Manifest</td><td>Canonical JSON profile summary used by recommendation logic.</td></tr>
+            <tr><td>Capability Preferences</td><td>Default stack, agents, infrastructure targets, and tool risk tolerance.</td></tr>
+            <tr><td>Connector Ledger</td><td>Generated MCP endpoints, health, last use, and whether they should be disabled.</td></tr>
+            <tr><td>Artifact Graph</td><td>Links between brainstorms, uploaded files, specs, tools, bundles, and repos.</td></tr>
+            <tr><td>Retrieval Text</td><td>Optimized profile text for vector indexing and LLM context loading.</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="schema">
+      <h2>Canonical user profile schema</h2>
+      <p class="sub">This schema should be stored in D1 as normalized tables, while also generating a profile manifest JSON for agents and vector indexing.</p>
+      <pre>{
+  "profile_id": "usr_01jared_mobile_builder",
+  "schema_version": "1.0.0",
+  "display": {
+    "name": "Jared Edwards",
+    "handle": "jared",
+    "avatar_emoji": "🛠️",
+    "headline": "Mobile-first AI software builder",
+    "public_profile": true
+  },
+  "builder_mode": {
+    "primary_device": "iPhone",
+    "mobile_first": true,
+    "preferred_agents": ["Claude", "Perplexity", "ChatGPT", "Alice"],
+    "preferred_runtime": "Cloudflare",
+    "preferred_source_control": "GitHub",
+    "preferred_spec_format": "html.spec",
+    "default_output": "mcp_tool_name_and_connector_url"
+  },
+  "workflow_preferences": {
+    "hide_infrastructure_by_default": true,
+    "show_power_tools": true,
+    "default_connector_lifetime": "temporary",
+    "default_security_posture": "dev_contained",
+    "default_tool_scope": "project_belt",
+    "preferred_handoff_style": "copyable_alice_prompt"
+  },
+  "capability_preferences": {
+    "cloudflare": ["workers", "d1", "r2", "kv", "vectorize", "cron", "custom_domains"],
+    "github": ["read_file", "list_files", "commit_file", "create_repo"],
+    "afo": ["message_board", "tool_catalogue", "vector_search", "html_specs"],
+    "mcp": ["minimal_http_post", "claude_custom_connector", "temporary_tool_belts"]
+  },
+  "active_projects": [
+    {
+      "project_id": "prj_mobile_mcp_factory",
+      "name": "Mobile MCP Factory",
+      "status": "building",
+      "source_inputs": ["brainstorm", "html_spec", "screenshots", "links"],
+      "recommended_bundle": "full_session_belt",
+      "current_connector_url": "https://example.agentfeedoptimization.com/mcp"
+    }
+  ],
+  "generated_tools": [
+    {
+      "tool_id": "tool_afo_repo_builder",
+      "name": "AFO Repo Builder",
+      "connector_url": "https://afo-repo-builder.agentfeedoptimization.com/mcp",
+      "status": "ready",
+      "risk": "dev_only",
+      "expires_at": null,
+      "tools": ["github.read_file", "github.commit_file", "cloudflare.deploy_worker"]
+    }
+  ],
+  "retrieval_text": "Mobile-first builder using Claude, Perplexity, ChatGPT, Alice, GitHub, Cloudflare Workers, D1, R2, Vectorize, MCP connectors, and html.spec files. User wants simple outputs: MCP tool name and connector URL."
+}</pre>
+    </section>
+
+    <section class="section wrap">
+      <h2>D1 tables</h2>
+      <p class="sub">Keep the implementation simple. D1 stores durable profile records; Vectorize stores semantic retrieval chunks; R2 can store uploads/specs if needed.</p>
+      <pre>-- users
+CREATE TABLE users (
+  id TEXT PRIMARY KEY,
+  email TEXT,
+  display_name TEXT NOT NULL,
+  handle TEXT UNIQUE,
+  avatar_emoji TEXT DEFAULT '🛠️',
+  headline TEXT,
+  public_profile INTEGER DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- user_preferences
+CREATE TABLE user_preferences (
+  user_id TEXT PRIMARY KEY,
+  primary_device TEXT DEFAULT 'iPhone',
+  mobile_first INTEGER DEFAULT 1,
+  preferred_runtime TEXT DEFAULT 'Cloudflare',
+  preferred_source_control TEXT DEFAULT 'GitHub',
+  preferred_spec_format TEXT DEFAULT 'html.spec',
+  hide_infrastructure_by_default INTEGER DEFAULT 1,
+  default_security_posture TEXT DEFAULT 'dev_contained',
+  default_connector_lifetime TEXT DEFAULT 'temporary',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- user_agents
+CREATE TABLE user_agents (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  agent_name TEXT NOT NULL,
+  role TEXT,
+  priority INTEGER DEFAULT 0,
+  enabled INTEGER DEFAULT 1,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- user_projects
+CREATE TABLE user_projects (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  status TEXT DEFAULT 'active',
+  goal_text TEXT,
+  repo_url TEXT,
+  spec_url TEXT,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- generated_connectors
+CREATE TABLE generated_connectors (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  project_id TEXT,
+  name TEXT NOT NULL,
+  connector_url TEXT NOT NULL,
+  worker_name TEXT,
+  status TEXT DEFAULT 'draft',
+  risk_profile TEXT DEFAULT 'dev_only',
+  tool_ids_json TEXT NOT NULL DEFAULT '[]',
+  manifest_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  last_checked_at TEXT,
+  expires_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (project_id) REFERENCES user_projects(id)
+);
+
+-- profile_artifacts
+CREATE TABLE profile_artifacts (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  project_id TEXT,
+  type TEXT NOT NULL, -- brainstorm | file | link | spec | repo | screenshot | message | tool | bundle
+  title TEXT,
+  body TEXT,
+  url TEXT,
+  r2_key TEXT,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (project_id) REFERENCES user_projects(id)
+);</pre>
+    </section>
+
+    <section class="section wrap" id="api">
+      <h2>API routes</h2>
+      <p class="sub">The profile API should support both a human UI and an agent-readable manifest endpoint.</p>
+      <div class="grid-2">
+        <div class="spec-card">
+          <h3>Profile routes</h3>
+          <pre>GET  /api/me
+PATCH /api/me
+GET  /api/profile/:handle
+GET  /api/profile/:handle/manifest
+POST /api/profile/:handle/refresh-embedding</pre>
+        </div>
+        <div class="spec-card">
+          <h3>Project + connector routes</h3>
+          <pre>GET  /api/me/projects
+POST /api/me/projects
+POST /api/me/projects/:id/artifacts
+POST /api/me/recommend-tool
+POST /api/me/generate-connector
+GET  /api/me/connectors
+POST /api/me/connectors/:id/health-check
+POST /api/me/connectors/:id/archive</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap">
+      <h2>Recommendation logic</h2>
+      <p class="sub">The profile improves the recommendation engine by giving every brainstorm a known builder context.</p>
+      <div class="flow">
+        <div class="flow-step"><div class="num">A</div><div><strong>Input context</strong><span>User brainstorm, pasted links, files, screenshots, repo URLs, current project, and profile preferences.</span></div></div>
+        <div class="flow-step"><div class="num">B</div><div><strong>Retrieve candidates</strong><span>Search tool catalogue, recipes, bundles, message board, prior connectors, and similar successful projects.</span></div></div>
+        <div class="flow-step"><div class="num">C</div><div><strong>Score by fit</strong><span>Project goal, mobile compatibility, agent compatibility, required capabilities, risk posture, and prior user behavior.</span></div></div>
+        <div class="flow-step"><div class="num">D</div><div><strong>Return simple output</strong><span>Tool name, connector URL, short purpose, status, and Claude setup instructions. Hide Cloudflare details by default.</span></div></div>
+      </div>
+    </section>
+
+    <section class="section wrap">
+      <h2>Profile UI states</h2>
+      <p class="sub">The same profile should feel simple for new users and powerful for builders.</p>
+      <div class="grid-3">
+        <article class="spec-card">
+          <h3>New user</h3>
+          <p>Ask what they want to build, which agent they use, whether they have files/links, and whether they want the fastest safe default.</p>
+          <span class="tag green">onboarding</span>
+        </article>
+        <article class="spec-card">
+          <h3>Active builder</h3>
+          <p>Show active projects, current recommended connector, previous tool belts, and one-tap generate flow.</p>
+          <span class="tag acid">cockpit</span>
+        </article>
+        <article class="spec-card">
+          <h3>Power user</h3>
+          <p>Expose tool catalogue, bundle editor, connector health, manifests, logs, risk toggles, and export JSON.</p>
+          <span class="tag orange">workshop</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="section wrap">
+      <h2>Output card spec</h2>
+      <p class="sub">After a recommendation/generation, the profile should show one clean card. This is what the user came for.</p>
+      <div class="panel pad">
+        <div class="profile-card" style="max-width:720px;margin:0 auto;">
+          <div class="card-title"><span>Your MCP Tool is Ready</span><span>copy to Claude</span></div>
+          <h3 style="margin:0 0 6px;font-size:28px;">AFO Repo Builder</h3>
+          <p style="margin:0 0 14px;color:var(--muted);">Creates GitHub repos from html.spec files, adds README/AGENTS/ROADMAP docs, and posts status back to the message board.</p>
+          <pre style="margin-bottom:12px;">https://afo-repo-builder.agentfeedoptimization.com/mcp</pre>
+          <div class="stack">
+            <span class="pill good">Claude-compatible</span>
+            <span class="pill good">mobile-ready</span>
+            <span class="pill warn">dev-only</span>
+          </div>
+          <button class="cta">Copy Connector URL</button>
+          <button class="secondary" style="margin-top:10px;">View Included Tools</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap">
+      <h2>Build phases</h2>
+      <p class="sub">Alice should implement this incrementally, starting with static UI and schema before adding full recommendation/generation behavior.</p>
+      <div class="grid-3">
+        <article class="spec-card"><h3>Phase 1 — Static profile</h3><p>Build responsive profile page, sample data, tabs, output card, and manifest JSON preview.</p><span class="tag green">ship first</span></article>
+        <article class="spec-card"><h3>Phase 2 — D1 persistence</h3><p>Add users, preferences, projects, artifacts, and connector ledger tables with CRUD API routes.</p><span class="tag acid">foundation</span></article>
+        <article class="spec-card"><h3>Phase 3 — Recommendation</h3><p>Wire profile + brainstorm + vector search into tool/bundle recommendation and connector generation.</p><span class="tag orange">intelligence</span></article>
+      </div>
+    </section>
+
+    <section class="section wrap" id="handoff">
+      <div class="spec-card handoff">
+        <h2>Alice handoff prompt</h2>
+        <p class="sub">Copy this into Alice/Perplexity with the file attached or linked.</p>
+        <pre>Alice — build the AFO Toolsmith user profile repo/page from this html.spec.
+
+Goal:
+Create a mobile-first profile system for AFO Toolsmith. The profile is the user's mobile build cockpit: it stores builder preferences, active projects, generated MCP tools, connector URLs, tool belts, and agent-readable context.
+
+Build priority:
+1. Create static responsive UI from this spec.
+2. Add sample profile data matching the schema.
+3. Add /api/profile/:handle/manifest returning the canonical JSON manifest.
+4. Add D1 schema files for users, preferences, agents, projects, connectors, and artifacts.
+5. Add placeholder recommendation endpoint /api/me/recommend-tool.
+6. Ensure the UI output card focuses on the simple product promise: tool name + connector URL.
+
+Repo files:
+- README.md
+- AGENTS.md
+- PRD.md
+- ROADMAP.md
+- SECURITY.md
+- spec.html
+- schema/profile.sql
+- schema/profile.manifest.schema.json
+- docs/ARCHITECTURE.md
+- src/index.html or app route
+- src/api/profile.ts
+- src/lib/profile-manifest.ts
+- src/lib/recommendation-stub.ts
+
+Product principle:
+Hide Cloudflare infrastructure by default. The user gives a brainstorm, files, and links. AFO Toolsmith returns the MCP tool name and connector URL they should use in Claude.</pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer wrap">
+    AFO Toolsmith User Profile HTML Spec · Mobile development platform profile layer · Brainstorm in, MCP tool out.
+  </footer>
+</body>
+</html>
