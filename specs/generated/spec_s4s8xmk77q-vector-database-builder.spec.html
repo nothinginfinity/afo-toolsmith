@@ -1,0 +1,104 @@
+<DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>vector-database-builder — MCP Tool Spec</title>
+<head>
+<body>
+<h1>vector-database-builder</h1>
+<p class="tagline">A tool that builds vector databases for Cloudflare.</p>
+<section id="overview">
+<h2>Overview</h2>
+<p>This tool creates a vector database for Cloudflare using the Geohash algorithm. It takes in a list of coordinates and returns a vector database with the corresponding Geohash values.</p>
+<section>
+<section id="tools">
+<h2>Tools</h2>
+<article id="tool-geohash">
+<h3>Geohash</h3>
+<p>The Geohash algorithm is used to create a compact string representation of a geographic location.</p>
+<h4>Input Schema</h4>
+<pre><code class="language-json">
+{
+  "type": "object",
+  "properties": {
+    "coordinates": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    }
+  }
+}
+</code></pre>
+<h4>Output</h4>
+<p>A string representing the Geohash value.</p>
+<h4>Example</h4>
+<pre><code class="language-json">
+{
+  "coordinates": [37.7749, -122.4194]
+}
+</code></pre>
+</article>
+<article id="tool-vector-database">
+<h3>Vector Database</h3>
+<p>A vector database is a data structure that stores a collection of vectors, each representing a geographic location.</p>
+<h4>Input Schema</h4>
+<pre><code class="language-json">
+{
+  "type": "object",
+  "properties": {
+    "coordinates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}
+</code></pre>
+<h4>Output</h4>
+<p>A vector database with the corresponding Geohash values.</p>
+<h4>Example</h4>
+<pre><code class="language-json">
+{
+  "coordinates": [
+    {
+      "latitude": 37.7749,
+      "longitude": -122.4194
+    },
+    {
+      "latitude": 37.7859,
+      "longitude": -122.4364
+    }
+  ]
+}
+</code></pre>
+</article>
+<section>
+<section id="worker">
+<h2>Cloudflare Worker</h2>
+<p>Runtime: Cloudflare Workers (vanilla JS)</p>
+<p>Bindings: geohash, vector-database</p>
+<p>Route: /mcp</p>
+<section>
+<section id="deployment">
+<h2>Deployment</h2>
+<ol>
+<li>Run the following command to deploy the worker: <code>wrangler deploy --name vector-database-builder --worker main.js</code></li>
+</ol>
+<section>
+<section id="connector">
+<h2>Connector URL</h2>
+<p>Format: https://vector-database-builder.agentfeedoptimization.com/mcp</p>
+<p>Suggested name: vector-database-builder</p>
+<section>
+<body>
+<html>
