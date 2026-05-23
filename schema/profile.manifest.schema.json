@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AFO Toolsmith Profile Manifest",
+  "description": "Agent-readable profile manifest for MCP tool recommendation and connector generation",
+  "type": "object",
+  "required": ["profile_id", "schema_version", "display", "builder_mode", "retrieval_text"],
+  "properties": {
+    "profile_id": { "type": "string" },
+    "schema_version": { "type": "string" },
+    "display": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "handle": { "type": "string" },
+        "avatar_emoji": { "type": "string" },
+        "headline": { "type": "string" },
+        "public_profile": { "type": "boolean" }
+      }
+    },
+    "builder_mode": {
+      "type": "object",
+      "properties": {
+        "primary_device": { "type": "string" },
+        "mobile_first": { "type": "boolean" },
+        "preferred_agents": { "type": "array", "items": { "type": "string" } },
+        "preferred_runtime": { "type": "string" },
+        "preferred_source_control": { "type": "string" },
+        "preferred_spec_format": { "type": "string" },
+        "default_output": { "type": "string" }
+      }
+    },
+    "workflow_preferences": { "type": "object" },
+    "capability_preferences": { "type": "object" },
+    "active_projects": { "type": "array" },
+    "generated_tools": { "type": "array" },
+    "retrieval_text": { "type": "string" }
+  }
+}
