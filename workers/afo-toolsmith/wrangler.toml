@@ -5,14 +5,14 @@ compatibility_date = "2024-11-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "afo-toolsmith-db"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "7a675862-1284-45a6-941a-3bcef0e540ef"
 
-# R2 bucket for spec/file uploads
+# R2 bucket for spec/file uploads (Phase 3)
 # [[r2_buckets]]
 # binding = "BUCKET"
 # bucket_name = "afo-toolsmith-uploads"
 
-# Vectorize index for tool catalogue + profile retrieval
+# Vectorize index for tool catalogue + profile retrieval (Phase 3)
 # [[vectorize]]
 # binding = "VECTORIZE"
 # index_name = "afo-toolsmith-tools"
